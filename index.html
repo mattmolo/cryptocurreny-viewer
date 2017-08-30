@@ -130,17 +130,17 @@
             <div v-if="!error">
                 <div class="row">
                     <div class="left">{{coin}}:</div>
-                    <div class="right" id="total_xrp">{{round(amount)}}</div>
+                    <div class="right" id="total_xrp">{{amount | number}}</div>
                     <div style="float: clear"></div>
                 </div>
                 <div class="row">
                     <div class="left">USD:</div>
-                    <div class="right" id="total_usd">{{total_usd}}</div>
+                    <div class="right" id="total_usd">{{total_usd | number}}</div>
                     <div style="float: clear"></div>
                 </div>
                 <div class="row">
                     <div class="left">USD/{{coin}}:</div>
-                    <div class="right" id="conversion">{{conversion_rate}}</div>
+                    <div class="right" id="conversion">{{conversion_rate | number}}</div>
                     <div style="float: clear"></div>
                 </div>
                 <div v-if="!local_storage" @click="saveData" class="button">
@@ -224,6 +224,30 @@
                         }
                     }
                 },
+                filters: {
+                    number: function(val) {
+                        // Only modify actual numbers or numbers greater than 0
+                        // (Algorithm only works on positive numbers)
+                        if (isNaN(Number(val)) || val < 0) return val
+
+                        // Everything left of the decimal
+                        let integer_part = Math.floor(val)
+
+                        // Everything right of the decimal
+                        let decimal_part = val - integer_part
+
+                        // Combine the locale integer part of the number (With their thousand's seperator)
+                        // and the decimal part together, which is rounded to 5 points < 100 and 2 >= 100
+
+                        let decimal_points = integer_part >= 100 ? 2 : 5
+
+                        let integer_part_string = Number(integer_part).toLocaleString()
+
+                        let decimal_part_string = round(decimal_part, decimal_points).toFixed(decimal_points).substr(1)
+
+                        return integer_part_string + decimal_part_string
+                    }
+                },
                 methods: {
                     saveData: function() {
                         // Save data when data is not already displayed from local strorage
@@ -277,6 +301,8 @@
                         this.init_error = "Coin parameter must be set!"
                     } else if (!this.amount) {
                         this.init_error = "Amount parameter must be set!"
+                    } else if (Number(this.amount) <= 0) {
+                        this.init_error = "Amount should be a positive value greater than 0!"
                     }
 
                     if (!this.init_error) {
