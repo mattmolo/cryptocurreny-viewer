@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>CryptoCoin Status</title>
+
+    <!-- Set Mobile Scaling to Device Width
+    ––––––––––––––––––––––––––––––––––––––––––––––––––  -->
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:100,300,600,900" rel="stylesheet">
+
+    <!-- Scripts
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <script src="https://unpkg.com/vue"></script>
+    <!--<script src="https://unpkg.com/vue/dist/vue.min.js"></script>-->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- Mobile URL Bar Color
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="theme-color" content="#131f25">
+
+    <!-- Custom CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <style type="text/css">
+        /* Remove padding and force height to 100% */
+        *, html, body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            /* Some fonts and nice colors */
+            font-family: 'Roboto Slab', sans-serif;
+            font-weight: 100;
+            font-size: 18px;
+            color: white;
+
+            background-color: #131f25;
+
+            /* Keep things in middle, small padding on top/bottom */
+            margin: 0 auto;
+            max-width: 100%;
+            padding: 0 10px;
+        }
+
+        #app {
+            padding-top: 30px;
+        }
+
+        .row {
+            color: white;
+            width: 100%;
+            font-size: 60px;
+            overflow: auto;
+            text-align: center;
+        }
+
+        .left {
+            margin: 5px;
+            float: left;
+            text-align: right;
+            width: calc(50% - 10px);
+        }
+        .right {
+            margin: 5px;
+            float: left;
+            text-align: left;
+            width: calc(50% - 10px);
+        }
+
+        @media (max-width: 600px) {
+            .left, .right {
+                width: calc(100% - 10px);
+                text-align: center;
+            }
+            .row {
+                margin-bottom: 20px;
+            }
+        }
+
+        .button {
+            width: 100%;
+            max-width: 400px;
+            height: 80px;
+            line-height: 80px;
+            font-size: 35px;
+            border: 3px solid rgba(0, 0, 0, 0.25);
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px auto;
+
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+        }
+        .button:hover {
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .button:active {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .link, .link > a {
+            margin: 25px 0 0;
+            text-align: center;
+            width: 100%;
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+        }
+        .link > a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
+    <body>
+        <div id="app">
+            <div v-if="!error">
+                <div class="row">
+                    <div class="left">{{coin}}:</div>
+                    <div class="right" id="total_xrp">{{round(amount)}}</div>
+                    <div style="float: clear"></div>
+                </div>
+                <div class="row">
+                    <div class="left">USD:</div>
+                    <div class="right" id="total_usd">{{total_usd}}</div>
+                    <div style="float: clear"></div>
+                </div>
+                <div class="row">
+                    <div class="left">USD/{{coin}}:</div>
+                    <div class="right" id="conversion">{{conversion_rate}}</div>
+                    <div style="float: clear"></div>
+                </div>
+                <div v-if="!local_storage" @click="saveData" class="button">
+                    Save Coin and Amount
+                </div>
+                <div v-if="local_storage" class="link">
+                    <a :href="link">Direct Link</a>
+                </div>
+            </div>
+            <div v-if="error" class="row">
+                {{error}}
+            </div>
+        </div>
+
+        <!-- Custom JS
+        –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+        <script type="application/javascript">
+            function getUrlParameter(sParam) {
+                var sPageURL = window.location.search.substring(1);
+                var sURLVariables = sPageURL.split('&');
+                for (var i = 0; i < sURLVariables.length; i++) {
+                    var sParameterName = sURLVariables[i].split('=');
+                    if (sParameterName[0] == sParam) {
+                        return sParameterName[1];
+                    }
+                }
+            }
+
+            function round(val, decimal_points=5) {
+                let factor = Math.pow(10, decimal_points)
+                return Math.round(val * factor) / factor
+            }
+
+            const LS_COIN = 'coin'
+            const LS_AMOUNT = 'amount'
+            const LOADING = 'Loading...'
+            const UPDATE_INTERVAL = 2*1000 // 2 seconds
+
+            let V = new Vue({
+                el: '#app',
+                data: {
+                    // Coin's Ticke Value
+                    coin: undefined,
+
+                    // Amount of coins
+                    amount: undefined,
+
+                    // API data
+                    data: undefined,
+
+                    // If data is from local storage
+                    local_storage: false,
+
+                    // Keep track of any errors
+                    init_error: undefined,
+                    data_error: undefined,
+                },
+                computed: {
+                    conversion_rate: function() {
+                        if (!this.data) return LOADING
+                        return round(this.data.a[0])
+                    },
+                    total_usd: function() {
+                        if (!this.data) return LOADING
+                        return round(this.amount * this.conversion_rate)
+                    },
+                    link: function() {
+                        // Compute a direct link when using local storage
+                        let loc = document.location
+                        return `${loc.origin}${loc.pathname}?coin=${this.coin}&amount=${this.amount}`
+                    },
+                    error: function() {
+                        // Returns init and data error with
+                        // priority to the init error
+                        if (this.init_error) {
+                            return this.init_error
+                        } else if (this.data_error) {
+                            return this.data_error
+                        } else {
+                            return false
+                        }
+                    }
+                },
+                methods: {
+                    saveData: function() {
+                        // Save data when data is not already displayed from local strorage
+                        if (!this.local_storage) {
+                            localStorage.setItem(LS_COIN, this.coin)
+                            localStorage.setItem(LS_AMOUNT, this.amount)
+                        }
+                    },
+                    getData: async function() {
+                        // Using jsonp cors proxy for kraken api
+                        let response = await axios.get('http://jsonp.herokuapp.com', {
+                            params: {
+                                url: `https://api.kraken.com/0/public/Ticker?pair=${this.coin}USD`
+                            }
+                        })
+
+                        let {result, error} = response.data
+
+                        if (error.length) {
+                            // Error: data becomes undefined
+                            // data_error is set to the API's error
+                            this.data = undefined
+                            this.data_error = error[0]
+                        } else {
+                            // Sucess: data becomes the first result
+                            // data_error is set to undefined
+                            this.data = Object.values(result)[0]
+                            this.data_error = undefined
+                        }
+
+                        // Recall the function to update data again
+                        setTimeout(this.getData, UPDATE_INTERVAL)
+                    },
+                    round: round
+                },
+                created: function() {
+                    this.coin = getUrlParameter("coin")
+                    this.amount = getUrlParameter("amount")
+
+                    // If both coin and amount are missing, then
+                    // get them from local storage instead
+                    if (!this.coin && !this.amount) {
+                        this.coin = localStorage.getItem(LS_COIN)
+                        this.amount = localStorage.getItem(LS_AMOUNT)
+                        this.local_storage = true
+                    }
+
+                    // Coin or amount isn't set, which means local storage failed
+                    // or one parameter is set and the other isn't.
+                    if (!this.coin) {
+                        this.init_error = "Coin parameter must be set!"
+                    } else if (!this.amount) {
+                        this.init_error = "Amount parameter must be set!"
+                    }
+
+                    // Update the title
+                    document.title = `${this.coin} Status`
+
+                    // Load in the data
+                    this.getData()
+                }
+            })
+        </script>
+    </body>
+
+</html>
