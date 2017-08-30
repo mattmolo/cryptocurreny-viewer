@@ -279,11 +279,13 @@
                         this.init_error = "Amount parameter must be set!"
                     }
 
-                    // Update the title
-                    document.title = `${this.coin} Status`
+                    if (!this.init_error) {
+                        // Update the title
+                        document.title = `${this.coin} Status`
 
-                    // Load in the data
-                    this.getData()
+                        // Load in the data
+                        this.getData()
+                    }
                 }
             })
         </script>
