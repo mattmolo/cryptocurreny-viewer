@@ -139,10 +139,10 @@ let V = new Vue({
         // or one parameter is set and the other isn't.
         if (!this.coin) {
             this.init_error = "Coin parameter must be set!"
-        } else if (!this.amount) {
-            this.init_error = "Amount parameter must be set!"
         } else if (Number(this.amount) <= 0) {
             this.init_error = "Amount should be a positive value greater than 0!"
+        } else if (!this.amount) {
+            this.amount = 1
         }
 
         if (!this.init_error) {
