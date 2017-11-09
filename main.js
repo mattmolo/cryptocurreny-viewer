@@ -98,7 +98,7 @@ let V = new Vue({
         },
         getData: async function() {
             // Using jsonp cors proxy for kraken api
-            let response = await axios.get('https://jsonp.herokuapp.com', {
+            let response = await axios.get('https://jsonproxy.herokuapp.com', {
                 params: {
                     url: `https://api.kraken.com/0/public/Ticker?pair=${this.coin}USD`
                 }
