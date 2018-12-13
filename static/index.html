@@ -10,7 +10,8 @@
     <meta name="viewport" content="width=device-width, user-scalable=no">
 
     <!-- CSS –––––––––––––––––––––––––––––––––––––––––– -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:100,300,600,900" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:100" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:300" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
 
     <!-- Scripts –––––––––––––––––––––––––––––––––––––– -->
@@ -25,31 +26,23 @@
 
     <body>
         <div id="app">
-            <div v-if="!error">
-                <div class="row">
-                    <div class="left">{{coin}}:</div>
-                    <div class="right" id="total_xrp">{{amount | number}}</div>
-                    <div style="float: clear"></div>
-                </div>
-                <div class="row">
-                    <div class="left">USD:</div>
-                    <div class="right" id="total_usd">{{total_usd | number}}</div>
-                    <div style="float: clear"></div>
-                </div>
-                <div class="row">
-                    <div class="left">USD/{{coin}}:</div>
-                    <div class="right" id="conversion">{{conversion_rate | number}}</div>
-                    <div style="float: clear"></div>
-                </div>
-                <div v-if="!local_storage" @click="saveData" class="button">
-                    Save Coin and Amount
-                </div>
-                <div v-if="local_storage" class="link">
-                    <a :href="link">Direct Link</a>
-                </div>
-            </div>
-            <div v-if="error" class="row">
-                {{error}}
+            <div v-for="exchange,name in data" :key="name">
+                <h1>{{name}}</h1>
+                <hr>
+                <table>
+                        <tr v-for="coin in exchange" :key="coin.symbol">
+                            <td>{{coin.symbol  | number}}</td>
+                            <td class="right">{{coin.amount  | number}}</td>
+                            <td class="right">{{coin.trading | number}}</td>
+                            <td class="right">{{coin.value   | number}}</td>
+                        </tr>
+                        <tr>
+                            <td>SUM</td>
+                            <td></td>
+                            <td></td>
+                            <td class="right">{{total(exchange) | number}}</td>
+                        </tr>
+                </table>
             </div>
         </div>
 

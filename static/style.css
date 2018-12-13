@@ -1,0 +1,48 @@
+/* Remove padding and force height to 100% */
+*, html, body {
+    padding: 0;
+    margin: 0;
+}
+html, body {
+    height: 100%;
+}
+
+body {
+    /* Some fonts and nice colors */
+    font-family: 'Roboto Slab', sans-serif;
+    font-weight: 100;
+    font-size: 18px;
+    color: white;
+
+    background-color: #131f25;
+
+    margin: 0 auto;
+    max-width: 100%;
+    padding: 0 10px;
+}
+
+#app {
+    padding-top: 30px;
+    width: 800px;
+    margin: 0 auto;
+}
+
+table {
+    width: 100%;
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 300;
+    padding-bottom: 20px;
+    border-collapse:collapse;
+}
+
+td.right {
+    text-align: right;
+}
+
+tr:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+tr:last-child {
+    border-top: 2px solid rgba(255,255,255,0.3);
+}
