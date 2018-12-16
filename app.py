@@ -7,7 +7,6 @@ from config import config
 app = Flask(__name__, static_url_path="")
 
 
-
 portfolios = {}
 for exchange in config['exchanges']:
     portfolios[exchange['name']] = exchange['client'](**exchange['init'])
@@ -25,4 +24,4 @@ def portfolio():
     })
 
 if __name__ == '__main__':
-    app.run(debug=False, use_reloader=True, host="0.0.0.0", port=4000)
+    app.run(debug=False, use_reloader=True, host="0.0.0.0", port=5000)
